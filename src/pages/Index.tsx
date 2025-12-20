@@ -35,27 +35,18 @@ const Index = () => {
     }
   }, [todayIndex]);
 
-  // Redirect to login if not authenticated
-  if (!isLoading && !student) {
-    return <Navigate to="/login" replace />;
-  }
+  // Auth guard is placed after hooks to respect Rules of Hooks.
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
 
   const currentDaySchedule = schedule2AP2[selectedDay];
   const unreadCount = notifications.filter(n => !n.read).length;
 
   // Find current and next class
   const { currentClass, nextClass, timeUntilNext } = useMemo(() => {
+    if (isLoading || !student) {
+      return { currentClass: null, nextClass: null, timeUntilNext: null };
+    }
+
     if (todayIndex !== selectedDay) {
       return { currentClass: null, nextClass: null, timeUntilNext: null };
     }
@@ -88,7 +79,23 @@ const Index = () => {
     }
 
     return { currentClass: current, nextClass: next, timeUntilNext: null };
-  }, [selectedDay, todayIndex, currentDaySchedule]);
+  }, [selectedDay, todayIndex, currentDaySchedule, isLoading, student?.id]);
+
+  // Redirect to login if not authenticated
+  if (!isLoading && !student) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleMarkAsRead = (id: string) => {
     setNotifications(prev =>
