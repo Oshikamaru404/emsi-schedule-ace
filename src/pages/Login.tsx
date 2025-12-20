@@ -1,0 +1,104 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { GraduationCap, Loader2, AlertCircle } from 'lucide-react';
+
+const Login = () => {
+  const [studentNumber, setStudentNumber] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    const result = await login(studentNumber);
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error || 'Erreur de connexion');
+    }
+    
+    setIsLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo & Title */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
+            <GraduationCap className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">EMSI Smart Schedule</h1>
+          <p className="text-muted-foreground">Connectez-vous avec votre numéro d'étudiant</p>
+        </div>
+
+        {/* Login Card */}
+        <div className="glass-card rounded-2xl p-6 shadow-elegant">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="studentNumber" className="text-sm font-medium text-foreground">
+                Numéro d'étudiant
+              </label>
+              <Input
+                id="studentNumber"
+                type="text"
+                placeholder="Ex: F-2025-000940"
+                value={studentNumber}
+                onChange={(e) => setStudentNumber(e.target.value)}
+                className="h-12 text-lg bg-background/50 border-border/50 focus:border-primary"
+                disabled={isLoading}
+              />
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-lg font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Connexion...
+                </>
+              ) : (
+                'Se connecter'
+              )}
+            </Button>
+          </form>
+
+          {/* Demo hint */}
+          <div className="mt-6 pt-6 border-t border-border/50">
+            <p className="text-sm text-muted-foreground text-center">
+              <span className="font-medium">Demo:</span> Utilisez{' '}
+              <code className="px-2 py-1 rounded bg-muted text-foreground font-mono text-xs">
+                F-2025-000940
+              </code>
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-sm text-muted-foreground mt-8">
+          © 2025 EMSI Smart Schedule
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
