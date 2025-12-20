@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Navigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import DaySelector from '@/components/DaySelector';
 import CourseCard from '@/components/CourseCard';
@@ -7,15 +8,33 @@ import NextClassBanner from '@/components/NextClassBanner';
 import EmptyDayState from '@/components/EmptyDayState';
 import CampusMap from '@/components/CampusMap';
 import { schedule2AP2, sampleNotifications, Notification, classInfo, Course } from '@/data/scheduleData';
-import { Calendar, Map } from 'lucide-react';
+import { Calendar, Map, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
+  const { student, isLoading, logout } = useAuth();
   const [selectedDay, setSelectedDay] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>(sampleNotifications);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedCourseForMap, setSelectedCourseForMap] = useState<Course | null>(null);
+
+  // Redirect to login if not authenticated
+  if (!isLoading && !student) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Get today's index (0 = Monday, 5 = Saturday)
   const today = new Date();
@@ -124,12 +143,25 @@ const Index = () => {
               <span className="hidden sm:inline">Carte du campus</span>
             </Button>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
-            Bonjour ! 👋
-          </h2>
-          <p className="text-muted-foreground">
-            Voici votre emploi du temps pour la semaine
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+                Bonjour, {student?.full_name.split(' ')[0]} ! 👋
+              </h2>
+              <p className="text-muted-foreground">
+                {student?.class_name} • Voici votre emploi du temps
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              className="text-muted-foreground hover:text-destructive"
+              title="Se déconnecter"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Notification Banner */}
