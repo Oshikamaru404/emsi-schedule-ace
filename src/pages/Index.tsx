@@ -5,13 +5,17 @@ import CourseCard from '@/components/CourseCard';
 import NotificationPanel from '@/components/NotificationPanel';
 import NextClassBanner from '@/components/NextClassBanner';
 import EmptyDayState from '@/components/EmptyDayState';
-import { schedule2AP2, sampleNotifications, Notification, classInfo } from '@/data/scheduleData';
-import { Calendar } from 'lucide-react';
+import CampusMap from '@/components/CampusMap';
+import { schedule2AP2, sampleNotifications, Notification, classInfo, Course } from '@/data/scheduleData';
+import { Calendar, Map } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [selectedDay, setSelectedDay] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>(sampleNotifications);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [selectedCourseForMap, setSelectedCourseForMap] = useState<Course | null>(null);
 
   // Get today's index (0 = Monday, 5 = Saturday)
   const today = new Date();
@@ -73,6 +77,24 @@ const Index = () => {
     );
   };
 
+  const handleShowMap = (course: Course) => {
+    setSelectedCourseForMap(course);
+    setIsMapOpen(true);
+  };
+
+  const handleShowNextClassMap = () => {
+    const targetCourse = currentClass || nextClass || currentDaySchedule.courses[0];
+    if (targetCourse) {
+      setSelectedCourseForMap(targetCourse);
+      setIsMapOpen(true);
+    }
+  };
+
+  const handleOpenMapGeneral = () => {
+    setSelectedCourseForMap(null);
+    setIsMapOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header
@@ -85,13 +107,22 @@ const Index = () => {
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Welcome Section */}
         <div className="mb-8 fade-in">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
               <Calendar className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">
                 {classInfo.semester} • {classInfo.year}
               </span>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenMapGeneral}
+              className="gap-2"
+            >
+              <Map className="w-4 h-4" />
+              <span className="hidden sm:inline">Carte du campus</span>
+            </Button>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
             Bonjour ! 👋
@@ -122,6 +153,7 @@ const Index = () => {
             <NextClassBanner 
               course={currentClass || nextClass || currentDaySchedule.courses[0]} 
               timeUntil={timeUntilNext || undefined}
+              onShowMap={handleShowNextClassMap}
             />
           </div>
         )}
@@ -157,6 +189,7 @@ const Index = () => {
                   isCurrentClass={currentClass?.id === course.id}
                   isNextClass={nextClass?.id === course.id && !currentClass}
                   animationDelay={index * 100}
+                  onShowMap={handleShowMap}
                 />
               ))}
             </div>
@@ -181,6 +214,15 @@ const Index = () => {
         onClose={() => setIsNotificationOpen(false)}
         onMarkAsRead={handleMarkAsRead}
       />
+
+      {/* Campus Map */}
+      {isMapOpen && (
+        <CampusMap
+          targetRoom={selectedCourseForMap?.room}
+          targetCourse={selectedCourseForMap}
+          onClose={() => setIsMapOpen(false)}
+        />
+      )}
     </div>
   );
 };
