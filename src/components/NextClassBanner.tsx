@@ -1,12 +1,13 @@
-import { ArrowRight, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Clock, MapPin, Navigation } from 'lucide-react';
 import { Course } from '@/data/scheduleData';
 
 interface NextClassBannerProps {
   course: Course | null;
   timeUntil?: string;
+  onShowMap?: () => void;
 }
 
-const NextClassBanner = ({ course, timeUntil }: NextClassBannerProps) => {
+const NextClassBanner = ({ course, timeUntil, onShowMap }: NextClassBannerProps) => {
   if (!course) {
     return (
       <div className="glass-card rounded-2xl p-6 text-center">
@@ -63,7 +64,11 @@ const NextClassBanner = ({ course, timeUntil }: NextClassBannerProps) => {
         </div>
       </div>
 
-      <button className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors group">
+      <button 
+        onClick={onShowMap}
+        className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors group"
+      >
+        <Navigation className="w-4 h-4" />
         Voir l'itinéraire
         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
       </button>

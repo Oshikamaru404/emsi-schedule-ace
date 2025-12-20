@@ -1,4 +1,4 @@
-import { Clock, MapPin, Users, Building2 } from 'lucide-react';
+import { Clock, MapPin, Users, Building2, Navigation } from 'lucide-react';
 import { Course } from '@/data/scheduleData';
 
 interface CourseCardProps {
@@ -6,9 +6,10 @@ interface CourseCardProps {
   isCurrentClass?: boolean;
   isNextClass?: boolean;
   animationDelay?: number;
+  onShowMap?: (course: Course) => void;
 }
 
-const CourseCard = ({ course, isCurrentClass, isNextClass, animationDelay = 0 }: CourseCardProps) => {
+const CourseCard = ({ course, isCurrentClass, isNextClass, animationDelay = 0, onShowMap }: CourseCardProps) => {
   const getCardClass = () => {
     let base = 'schedule-card glass-card fade-in';
     
@@ -103,8 +104,8 @@ const CourseCard = ({ course, isCurrentClass, isNextClass, animationDelay = 0 }:
         )}
       </div>
 
-      {/* Course Type Indicator */}
-      <div className="mt-3">
+      {/* Course Type and Map Link */}
+      <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
         <span className={`
           text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded
           ${course.type === 'tp' ? 'bg-schedule-tp/20 text-schedule-tp' : ''}
@@ -115,6 +116,16 @@ const CourseCard = ({ course, isCurrentClass, isNextClass, animationDelay = 0 }:
           {course.type === 'language' ? 'Langue' : ''}
           {course.type === 'course' ? 'Cours Magistral' : ''}
         </span>
+        
+        {onShowMap && (
+          <button
+            onClick={() => onShowMap(course)}
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+          >
+            <Navigation className="w-3.5 h-3.5" />
+            <span>Voir l'itinéraire</span>
+          </button>
+        )}
       </div>
     </div>
   );
