@@ -1,16 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GraduationCap, Loader2, AlertCircle } from 'lucide-react';
+import { GraduationCap, Loader2, AlertCircle, Fingerprint } from 'lucide-react';
 
 const Login = () => {
   const [studentNumber, setStudentNumber] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [savedNumber, setSavedNumber] = useState<string | null>(null);
+  const { login, student } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (student) {
+      navigate('/');
+    }
+  }, [student, navigate]);
+
+  // Check for saved student number
+  useEffect(() => {
+    const saved = localStorage.getItem('emsi_last_student');
+    if (saved) {
+      setSavedNumber(saved);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,9 +36,29 @@ const Login = () => {
     const result = await login(studentNumber);
     
     if (result.success) {
+      localStorage.setItem('emsi_last_student', studentNumber.trim().toUpperCase());
       navigate('/');
     } else {
       setError(result.error || 'Erreur de connexion');
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleQuickLogin = async () => {
+    if (!savedNumber) return;
+    setError('');
+    setIsLoading(true);
+
+    const result = await login(savedNumber);
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error || 'Erreur de connexion');
+      // Clear saved number if it fails
+      localStorage.removeItem('emsi_last_student');
+      setSavedNumber(null);
     }
     
     setIsLoading(false);
@@ -40,6 +76,31 @@ const Login = () => {
           <p className="text-muted-foreground">Connectez-vous avec votre numéro d'étudiant</p>
         </div>
 
+        {/* Quick Login Option */}
+        {savedNumber && (
+          <div className="mb-6">
+            <Button
+              onClick={handleQuickLogin}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full h-16 glass-card border-primary/30 hover:bg-primary/10 gap-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Fingerprint className="w-6 h-6 text-primary" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-foreground">Connexion rapide</p>
+                <p className="text-xs text-muted-foreground">{savedNumber}</p>
+              </div>
+            </Button>
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground">ou</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+          </div>
+        )}
+
         {/* Login Card */}
         <div className="glass-card rounded-2xl p-6 shadow-elegant">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -50,7 +111,7 @@ const Login = () => {
               <Input
                 id="studentNumber"
                 type="text"
-                placeholder="Ex: F-2025-000940"
+                placeholder="F-XXXX-XXXXXX"
                 value={studentNumber}
                 onChange={(e) => setStudentNumber(e.target.value)}
                 className="h-12 text-lg bg-background/50 border-border/50 focus:border-primary"
@@ -80,16 +141,6 @@ const Login = () => {
               )}
             </Button>
           </form>
-
-          {/* Demo hint */}
-          <div className="mt-6 pt-6 border-t border-border/50">
-            <p className="text-sm text-muted-foreground text-center">
-              <span className="font-medium">Demo:</span> Utilisez{' '}
-              <code className="px-2 py-1 rounded bg-muted text-foreground font-mono text-xs">
-                F-2025-000940
-              </code>
-            </p>
-          </div>
         </div>
 
         {/* Footer */}
