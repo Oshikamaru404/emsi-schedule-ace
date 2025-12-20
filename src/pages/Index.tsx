@@ -20,6 +20,21 @@ const Index = () => {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedCourseForMap, setSelectedCourseForMap] = useState<Course | null>(null);
 
+  // Get today's index (0 = Monday, 5 = Saturday)
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  // Convert to our format: 0=Monday, 5=Saturday (Sunday = -1, out of schedule)
+  const todayIndex = dayOfWeek === 0 ? -1 : dayOfWeek - 1;
+
+  // Set initial selected day to today
+  useEffect(() => {
+    if (todayIndex >= 0 && todayIndex <= 5) {
+      setSelectedDay(todayIndex);
+    } else {
+      setSelectedDay(0); // Default to Monday if Sunday
+    }
+  }, [todayIndex]);
+
   // Redirect to login if not authenticated
   if (!isLoading && !student) {
     return <Navigate to="/login" replace />;
@@ -35,21 +50,6 @@ const Index = () => {
       </div>
     );
   }
-
-  // Get today's index (0 = Monday, 5 = Saturday)
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  // Convert to our format: 0=Monday, 5=Saturday (Sunday = -1, out of schedule)
-  const todayIndex = dayOfWeek === 0 ? -1 : dayOfWeek - 1;
-
-  // Set initial selected day to today
-  useEffect(() => {
-    if (todayIndex >= 0 && todayIndex <= 5) {
-      setSelectedDay(todayIndex);
-    } else {
-      setSelectedDay(0); // Default to Monday if Sunday
-    }
-  }, []);
 
   const currentDaySchedule = schedule2AP2[selectedDay];
   const unreadCount = notifications.filter(n => !n.read).length;
